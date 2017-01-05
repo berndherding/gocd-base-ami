@@ -1,0 +1,66 @@
+{
+  "Description": "GoCD Base AMI",
+
+  "AWSTemplateFormatVersion": "2010-09-09",
+
+  "Parameters" : {
+    "VpcId" : { "Type" : "String" }
+  },
+
+  "Resources": {
+
+    "Instance": {
+      "Type": "AWS::EC2::Instance",
+      "Metadata" : {
+        "Comment" : { "Fn::Join" : [ "", [
+          "in user data\n",
+          "- install aws-cfn-bootstrap-latest including cfn-signal\n",
+          "- install docker-engine in RUNLEVEL 1 to prevent docker daemon start\n",
+          "- send cfn-signal that stack creation is complete"
+        ]]}
+      },
+      "Properties": {
+        "AvailabilityZone": "eu-central-1b",
+        "DisableApiTermination": "false",
+        "InstanceInitiatedShutdownBehavior": "stop",
+        "ImageId": "ami-e012d48f",
+        "InstanceType": "t2.small",
+        "KeyName": "gocd",
+        "Monitoring": "true",
+        "SecurityGroupIds": [ { "Ref": "SecurityGroup" } ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Ref": "AWS::StackName" }
+          }
+        ],
+        "UserData" : { "Fn::Base64" : { "Fn::Join" : [ "\n", [
+          "#!/bin/bash -ex",
+          "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1",
+          "yum -y update",
+          "yum -y install jq",
+          "yum -y install aws-cli"
+        ]]}}
+      }
+    },
+
+    "SecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Go Server",
+        "VpcId": { "Ref" : "VpcId" }
+      }
+    },
+
+    "SshIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "FromPort": "22",
+        "ToPort": "22",
+        "IpProtocol": "tcp",
+        "CidrIp": "0.0.0.0/0",
+        "GroupId": { "Ref": "SecurityGroup" }
+      }
+    }
+  }
+}
