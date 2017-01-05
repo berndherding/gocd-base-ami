@@ -57,8 +57,33 @@ function getArmoredMultiLine() {
 
 
 function getValueKeys() {
+  setDockerHubEmail         || return $?
   setDockerHubUsername      || return $?
   setDockerHubPassword      || return $?
+}
+
+
+
+function setDockerHubEmail() {
+
+  if [ -z "$DOCKER_HUB_EMAIL" ] ; then
+
+    if [ ! -f "$DOCKER_HUB_EMAIL_FILE" ] ; then
+      read -p "DOCKER_HUB_EMAIL: " DOCKER_HUB_EMAIL
+      echo "$DOCKER_HUB_EMAIL" > "$DOCKER_HUB_EMAIL_FILE"
+    fi
+
+    DOCKER_HUB_EMAIL="$(cat "$DOCKER_HUB_EMAIL_FILE")"
+    chmod 600 "$DOCKER_HUB_EMAIL_FILE"
+
+    export DOCKER_HUB_EMAIL
+  fi
+}
+
+
+
+function getDockerHubEmail() {
+  echo "$DOCKER_HUB_EMAIL"
 }
 
 
@@ -75,8 +100,6 @@ function setDockerHubUsername() {
     DOCKER_HUB_USERNAME="$(cat "$DOCKER_HUB_USERNAME_FILE")"
     chmod 600 "$DOCKER_HUB_USERNAME_FILE"
 
-#    echo "DOCKER_HUB_USERNAME=\"$DOCKER_HUB_USERNAME\"" >> "$INIT_ENV_FILE"
-    
     export DOCKER_HUB_USERNAME
   fi
 }
@@ -101,8 +124,6 @@ function setDockerHubPassword() {
     DOCKER_HUB_PASSWORD="$(cat "$DOCKER_HUB_PASSWORD_FILE")"
     chmod 400 "$DOCKER_HUB_PASSWORD_FILE"
 
-#    echo "DOCKER_HUB_PASSWORD=\"$DOCKER_HUB_PASSWORD\"" >> "$INIT_ENV_FILE"
-
     export DOCKER_HUB_PASSWORD
   fi
 }
@@ -125,6 +146,7 @@ function initFileNames() {
 
   GITHUB_PEM_KEY_FILE=$TARGET/github.pem
 
+  DOCKER_HUB_EMAIL_FILE=$TARGET/dockerHubEmail
   DOCKER_HUB_USERNAME_FILE=$TARGET/dockerHubUsername
   DOCKER_HUB_PASSWORD_FILE=$TARGET/dockerHubPassword
 }
@@ -151,8 +173,6 @@ function provideSshPemKeyFile() {
     fi
 
     SSH_PEM_KEY="$(cat "$SSH_PEM_KEY_FILE")"
-
-#    echo "SSH_PEM_KEY=\"$SSH_PEM_KEY\"" >> "$INIT_ENV_FILE"
 
     export SSH_PEM_KEY
   fi
@@ -189,8 +209,6 @@ function provideSshPubKeyFile() {
 
     SSH_PUB_KEY="$(cat "$SSH_PUB_KEY_FILE")"
 
-#    echo "SSH_PUB_KEY=\"$SSH_PUB_KEY\"" >> "$INIT_ENV_FILE"
-
     export SSH_PUB_KEY
   fi
 
@@ -212,8 +230,6 @@ function provideGithubPemKeyFile() {
     fi
 
     GITHUB_PEM_KEY="$(cat "$GITHUB_PEM_KEY_FILE")"
-
-#    echo "GITHUB_PEM_KEY=\"$GITHUB_PEM_KEY\"" >> "$INIT_ENV_FILE"
 
     export GITHUB_PEM_KEY
   fi
