@@ -6,7 +6,7 @@ if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
 # shellcheck source=../ami.inc
 . "$DIR/../ami.inc"
 
-STACKNAME=test-go-ami
+STACKNAME=test-ami
 
 _GO_PIPELINE_COUNTER=-${GO_PIPELINE_COUNTER:-0}
 
