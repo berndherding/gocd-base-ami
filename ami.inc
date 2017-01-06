@@ -29,9 +29,10 @@ function createAmiInstance() {
 
 
 function createImage() {
-  local instanceId=$1
+  local instanceId
 
   # TODO: replace instanceId with stackname
+  instanceId="$(cat "$(dirname "$BASH_SOURCE")/target/instanceId")"
 
   details=$(aws ec2 create-image --instance-id "$instanceId" --name "$stackname") || return 4
 
@@ -127,10 +128,9 @@ function labelSnapshots() {
 function createAmi() {
   local stackname=$1
   
-  instanceId="$(cat "$(dirname "$BASH_SOURCE")/target/instanceId")"
-
   createAmiInstance "$stackname"      || return $?
-  createImage "$instanceId"           || return $?
+  # TODO parameter: $stackname
+  createImage                         || return $?
   waitSnapshotsAvailable "$stackname" || return $?
   labelSnapshots "$stackname"         || return $?
 }
