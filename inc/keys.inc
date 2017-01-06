@@ -4,28 +4,11 @@
 
 
 
-function initKeys() {
-
-  initGoCD
-
-  initFileNames
-
-  getValueKeys    || return $?
-  provideFileKeys || return $?
-}
-
-
-
-function initGoCD() {
-
-  TARGET=/gocd
-  GOCD=/gocd
-
-  [ ! -d $TARGET ] && TARGET="$DIR/target"
-  [ ! -d $TARGET ] && mkdir -p $TARGET
-
-  export TARGET
-  export GOCD
+function checkConfigFile() {
+  if [ -f "$TARGET/gocd.config" ] ; then
+    # shellcheck source=../target/gocd.config
+    . "$TARGET/gocd.config"
+  fi
 }
 
 
@@ -56,142 +39,119 @@ function getArmoredMultiLine() {
 
 
 
-function getValueKeys() {
-  setDockerHubEmail         || return $?
-  setDockerHubUsername      || return $?
-  setDockerHubPassword      || return $?
-}
+function init() {
 
+  # $DIR set in caller context
+  TARGET="$DIR/target"
+  [ ! -d "$TARGET" ] && mkdir -p "$TARGET"
+  export TARGET
 
+  GOCD_PRIVATE_KEY_FILE=$TARGET/gocdPrivateKeyFile
 
-function setDockerHubEmail() {
+  OPENSSL="$(which openssl)"
 
-  if [ -z "$DOCKER_HUB_EMAIL" ] ; then
-
-    if [ ! -f "$DOCKER_HUB_EMAIL_FILE" ] ; then
-      read -p "DOCKER_HUB_EMAIL: " DOCKER_HUB_EMAIL
-      echo "$DOCKER_HUB_EMAIL" > "$DOCKER_HUB_EMAIL_FILE"
-    fi
-
-    DOCKER_HUB_EMAIL="$(cat "$DOCKER_HUB_EMAIL_FILE")"
-    chmod 600 "$DOCKER_HUB_EMAIL_FILE"
-
-    export DOCKER_HUB_EMAIL
-  fi
-}
-
-
-
-function getDockerHubEmail() {
-  echo "$DOCKER_HUB_EMAIL"
-}
-
-
-
-function setDockerHubUsername() {
-
-  if [ -z "$DOCKER_HUB_USERNAME" ] ; then
-
-    if [ ! -f "$DOCKER_HUB_USERNAME_FILE" ] ; then
-      read -p "DOCKER_HUB_USERNAME: " DOCKER_HUB_USERNAME
-      echo "$DOCKER_HUB_USERNAME" > "$DOCKER_HUB_USERNAME_FILE"
-    fi
-
-    DOCKER_HUB_USERNAME="$(cat "$DOCKER_HUB_USERNAME_FILE")"
-    chmod 600 "$DOCKER_HUB_USERNAME_FILE"
-
-    export DOCKER_HUB_USERNAME
-  fi
+  checkConfigFile  
+ 
+  SSH="ssh -i $(getGoCDPrivateKeyFile) -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"; export SSH
+  SCP="scp -i $(getGoCDPrivateKeyFile) -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"; export SCP
 }
 
 
 
 function getDockerHubUsername() {
+  [ -z "$DOCKER_HUB_USERNAME" ] && setDockerHubUsername
   echo "$DOCKER_HUB_USERNAME"
 }
 
 
 
-function setDockerHubPassword() {
-
-  if [ -z "$DOCKER_HUB_PASSWORD" ] ; then
-
-    if [ ! -f "$DOCKER_HUB_PASSWORD_FILE" ] ; then
-      read -p "DOCKER_HUB_PASSWORD: " DOCKER_HUB_PASSWORD
-      echo "$DOCKER_HUB_PASSWORD" > "$DOCKER_HUB_PASSWORD_FILE"
-    fi
-
-    DOCKER_HUB_PASSWORD="$(cat "$DOCKER_HUB_PASSWORD_FILE")"
-    chmod 400 "$DOCKER_HUB_PASSWORD_FILE"
-
-    export DOCKER_HUB_PASSWORD
-  fi
+function setDockerHubUsername() {
+  [ -n "$DOCKER_HUB_USERNAME" ] && return
+  read -r -p "DOCKER_HUB_USERNAME: " DOCKER_HUB_USERNAME
+  export DOCKER_HUB_USERNAME
 }
 
 
 
 function getDockerHubPassword() {
+  [ -z "$DOCKER_HUB_PASSWORD" ] && setDockerHubPassword
   echo "$DOCKER_HUB_PASSWORD"
 }
 
 
 
-function initFileNames() {
-
-  SSH_PEM_KEY_FILE=$TARGET/gocd.pem
-  SSH_PUB_KEY_FILE=$TARGET/gocd.pub
-
-  export SSH="ssh -i $SSH_PEM_KEY_FILE -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-  export SCP="scp -i $SSH_PEM_KEY_FILE -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-
-  GITHUB_PEM_KEY_FILE=$TARGET/github.pem
-
-  DOCKER_HUB_EMAIL_FILE=$TARGET/dockerHubEmail
-  DOCKER_HUB_USERNAME_FILE=$TARGET/dockerHubUsername
-  DOCKER_HUB_PASSWORD_FILE=$TARGET/dockerHubPassword
+function setDockerHubPassword() {
+  [ -n "$DOCKER_HUB_PASSWORD" ] && return 
+  read -r -p "DOCKER_HUB_PASSWORD: " DOCKER_HUB_PASSWORD
+  export DOCKER_HUB_PASSWORD
 }
 
 
 
-function provideFileKeys() {
-
-  provideSshPemKeyFile    || return $?
-  provideSshPubKeyFile    || return $?
-  provideGithubPemKeyFile || return $?
+function getDockerHubEmail() {
+  [ -z "$DOCKER_HUB_EMAIL" ] && setDockerHubEmail
+  echo "$DOCKER_HUB_EMAIL"
 }
 
 
 
-function provideSshPemKeyFile() {
-
-  if [ -z "$SSH_PEM_KEY" ] ; then
-
-    if [ -n "$GOCD_SSH_PRIVATE_KEY" ] ; then
-      getArmoredMultiLine "$GOCD_SSH_PRIVATE_KEY" > "$SSH_PEM_KEY_FILE"
-    elif [ ! -f "$SSH_PEM_KEY_FILE" ] ; then
-      openssl genrsa -out "$SSH_PEM_KEY_FILE" 2048 || return 4
-    fi
-
-    SSH_PEM_KEY="$(cat "$SSH_PEM_KEY_FILE")"
-
-    export SSH_PEM_KEY
-  fi
-
-  if [ ! -f "$SSH_PEM_KEY_FILE" ] ; then
-    echo "$SSH_PEM_KEY" >> "$SSH_PEM_KEY_FILE"
-  fi
-
-  # outside if stmt - GoCD disregards permission modes
-  chmod 0400 "$SSH_PEM_KEY_FILE"
+function setDockerHubEmail() {
+  [ -n "$DOCKER_HUB_EMAIL" ] && return
+  read -r -p "DOCKER_HUB_EMAIL: " DOCKER_HUB_EMAIL
+  export DOCKER_HUB_EMAIL
 }
 
 
+
+function getGoCDPrivateKeyFile() {
+  [ ! -f "$GOCD_PRIVATE_KEY_FILE" ] && provideGoCDPrivateKeyFile
+  echo "$GOCD_PRIVATE_KEY_FILE"
+  # TODO: is there a pub key uploaded to AWS for this priv key? if not, generate one
+  # with pipeline .no and date and change GOCD_PRIVATE_KEY_FILE name accordingly
+}
+
+
+
+function provideGoCDPrivateKeyFile() {
+  [ -f "$GOCD_PRIVATE_KEY_FILE" ] && return 
+  getGoCDPrivateKey > "$GOCD_PRIVATE_KEY_FILE"
+  chmod 0400 "$GOCD_PRIVATE_KEY_FILE"
+  export GOCD_PRIVATE_KEY_FILE
+}
+
+
+
+function getGoCDPrivateKey() {
+  [ -z "$GOCD_PRIVATE_KEY" ] && setGoCDPrivateKey
+  getArmoredMultiLine "$GOCD_PRIVATE_KEY" || return 1
+}
+
+
+
+function setGoCDPrivateKey() {
+  [ -n "$GOCD_PRIVATE_KEY" ] & return
+  GOCD_PRIVATE_KEY="$($OPENSSL genrsa 2048)" || return 2
+  export GOCD_PRIVATE_KEY
+}
+
+
+
+function getGithubPrivateKey() {
+  [ -z "$GITHUB_PRIVATE_KEY" ] && return 3
+  getArmoredMultiLine "$GITHUB_PRIVATE_KEY" || return 4
+}
+
+
+
+init
+
+#####
 
 function provideSshPubKeyFile() {
 
   if [ -z "$SSH_PUB_KEY" ] ; then
 
-    openssl rsa -in "$SSH_PEM_KEY_FILE" -pubout > "$SSH_PUB_KEY_FILE" || return 5
+    "$OPENSSL" rsa -in "$SSH_PEM_KEY_FILE" -pubout > "$SSH_PUB_KEY_FILE" || return 5
 
     json=$(aws ec2 describe-key-pairs --key-name gocd 2> /dev/null)
 
@@ -199,11 +159,12 @@ function provideSshPubKeyFile() {
     keyFingerprint=${keyFingerprint%%\"*}
 
     # TODO: check here for identity if key already exists
-    # get fingerprint: openssl pkcs8 -in backup/gocd.pem -topk8 -nocrypt -outform DER | openssl sha1 -c
+    # get fingerprint: openssl pkey -in target/old/gocd.pem -pubout -outform DER | openssl md5 -c
+    # NOTE: openssl must be >= 1.0.2
     # if exists and is different: maybe add new key with name gocd-<pipelinecount>
 
     if [ -z "$keyFingerprint" ] ; then 
-      aws ec2 import-key-pair --key-name gocd --public-key-material "$(cat "$SSH_PUB_KEY_FILE" | awk '! /PUBLIC KEY/ {printf $0}')"
+      aws ec2 import-key-pair --key-name gocd --public-key-material "$(awk '! /PUBLIC KEY/ {printf $0}' < "$SSH_PUB_KEY_FILE")"
       [ $? -ne 0 ] && return 7
     fi
 
@@ -216,32 +177,3 @@ function provideSshPubKeyFile() {
     echo "$SSH_PUB_KEY" >> "$SSH_PUB_KEY_FILE"
   fi
 }
-
-
-
-function provideGithubPemKeyFile() {
-
-  if [ -z "$GITHUB_PEM_KEY" ] ; then
-
-    if [ -n "$GOCD_GITHUB_PRIVATE_KEY" ] ; then
-      getArmoredMultiLine "$GOCD_GITHUB_PRIVATE_KEY" > "$GITHUB_PEM_KEY_FILE"
-    elif [ ! -f "$GITHUB_PEM_KEY_FILE" ] ; then
-      return 8
-    fi
-
-    GITHUB_PEM_KEY="$(cat "$GITHUB_PEM_KEY_FILE")"
-
-    export GITHUB_PEM_KEY
-  fi
-
-  if [ ! -f "$GITHUB_PEM_KEY_FILE" ] ; then
-    echo "$GITHUB_PEM_KEY" >> "$GITHUB_PEM_KEY_FILE"
-  fi
-
-  # outside if stmt - GoCD disregards permission modes
-  chmod 0400 "$GITHUB_PEM_KEY_FILE"
-}
-
-
-
-initKeys || return $?
