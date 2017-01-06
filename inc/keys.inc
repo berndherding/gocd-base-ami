@@ -46,7 +46,7 @@ function init() {
   [ ! -d "$TARGET" ] && mkdir -p "$TARGET"
   export TARGET
 
-  GOCD_PRIVATE_KEY_FILE=$TARGET/gocdPrivateKeyFile
+  GOCD_PRIVATE_KEY_FILE=$TARGET/gocd.pem
 
   OPENSSL="$(which openssl)"
 
