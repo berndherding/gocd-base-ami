@@ -6,9 +6,6 @@ if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
 # shellcheck source=inc/commons.inc
 . "$DIR/inc/commons.inc"
 
-# shellcheck source=inc/keys.inc
-. "$DIR/inc/keys.inc"
-
 [ ! -d "$DIR/target" ] && mkdir "$DIR/target"
 
 
