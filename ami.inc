@@ -1,29 +1,29 @@
 #!/bin/bash
 
-DIR="${BASH_SOURCE%/*}"
-if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
-
 # shellcheck source=inc/commons.inc
-. "$DIR/inc/commons.inc"
+. "$(dirname "$BASH_SOURCE")/inc/commons.inc"
 
-[ ! -d "$DIR/target" ] && mkdir "$DIR/target"
+[ ! -d "$(dirname "$BASH_SOURCE")/target" ] && mkdir "$(dirname "$BASH_SOURCE")/target"
 
 
 
 function createAmiInstance() {
   local stackname=$1
+  local dirname
+
+  dirname="$(dirname "$BASH_SOURCE")"
   
   aws cloudformation create-stack \
   --stack-name "$stackname" \
-  --template-body file://"$DIR/ami.cf" \
+  --template-body file://"$dirname/ami.cf" \
   --parameters ParameterKey=VpcId,ParameterValue="$(getDefaultVpcId)" \
   || return 1
 
   echo "*** please wait for create-stack to complete. this may take a few minutes."
   aws cloudformation wait stack-create-complete --stack-name "$stackname" --output text || return 2
 
-  getInstanceId       "$stackname" > "$DIR/target/instanceId"
-  getPublicIpAddress  "$stackname" > "$DIR/target/publicIpAddress"
+  getInstanceId       "$stackname" > "$dirname/target/instanceId"
+  getPublicIpAddress  "$stackname" > "$dirname/target/publicIpAddress"
 }
 
 
@@ -40,7 +40,7 @@ function createImage() {
   echo "*** please wait for create-image to complete. this may take a few minutes."
   aws ec2 wait image-available --image-ids "$imageId" || return 5
 
-  echo "$imageId" > "$DIR/target/imageId"
+  echo "$imageId" > "$(dirname "$BASH_SOURCE")/target/imageId"
 }
 
 
@@ -126,11 +126,13 @@ function labelSnapshots() {
 
 function createAmi() {
   local stackname=$1
+  
+  instanceId="$(cat "$(dirname "$BASH_SOURCE")/target/instanceId")"
 
-  createAmiInstance "$stackname"                  || return $?
-  createImage "$(cat "$DIR/target/instanceId")"   || return $?
-  waitSnapshotsAvailable "$stackname"             || return $?
-  labelSnapshots "$stackname"                     || return $?
+  createAmiInstance "$stackname"      || return $?
+  createImage "$instanceId"           || return $?
+  waitSnapshotsAvailable "$stackname" || return $?
+  labelSnapshots "$stackname"         || return $?
 }
 
 

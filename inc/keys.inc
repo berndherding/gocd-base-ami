@@ -2,6 +2,15 @@
 
 [ -z "$GOCD_KEYS_INCLUDED" ] && GOCD_KEYS_INCLUDED=1 || return
 
+shopt -s extglob
+
+function getDir() {
+  local dir
+  dir="${BASH_SOURCE%%?(/)*([^/])}"
+  dir="${dir:-$PWD}" 
+  echo "$dir"
+}
+
 
 
 function checkConfigFile() {
@@ -41,8 +50,7 @@ function getArmoredMultiLine() {
 
 function init() {
 
-  # $DIR set in caller context
-  TARGET="$DIR/target"
+  TARGET="$(getDir)/target"
   [ ! -d "$TARGET" ] && mkdir -p "$TARGET"
   export TARGET
 
