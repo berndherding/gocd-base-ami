@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # shellcheck source=inc/commons.inc
-. "$(dirname "$BASH_SOURCE")/inc/commons.inc"
+. "$(dirname "${BASH_SOURCE[0]}")/inc/commons.inc"
 
-[ ! -d "$(dirname "$BASH_SOURCE")/target" ] && mkdir "$(dirname "$BASH_SOURCE")/target"
+[ ! -d "$(dirname "${BASH_SOURCE[0]}")/target" ] && mkdir "$(dirname "${BASH_SOURCE[0]}")/target"
 
 
 
@@ -11,7 +11,7 @@ function createAmiInstance() {
   local stackname=$1
   local dirname
 
-  dirname="$(dirname "$BASH_SOURCE")"
+  dirname="$(dirname "${BASH_SOURCE[0]}")"
   
   aws cloudformation create-stack \
   --stack-name "$stackname" \
@@ -32,7 +32,7 @@ function createImage() {
   local instanceId
 
   # TODO: replace instanceId with stackname
-  instanceId="$(cat "$(dirname "$BASH_SOURCE")/target/instanceId")"
+  instanceId="$(cat "$(dirname "${BASH_SOURCE[0]}")/target/instanceId")"
 
   details=$(aws ec2 create-image --instance-id "$instanceId" --name "$stackname") || return 4
 
@@ -41,7 +41,7 @@ function createImage() {
   echo "*** please wait for create-image to complete. this may take a few minutes."
   aws ec2 wait image-available --image-ids "$imageId" || return 5
 
-  echo "$imageId" > "$(dirname "$BASH_SOURCE")/target/imageId"
+  echo "$imageId" > "$(dirname "${BASH_SOURCE[0]}")/target/imageId"
 }
 
 

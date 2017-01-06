@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # shellcheck source=ami.inc
-. "$(dirname "$BASH_SOURCE")/ami.inc"
+. "$(dirname "${BASH_SOURCE[0]}")/ami.inc"
 
 STACKNAME=gocd-ami
 
