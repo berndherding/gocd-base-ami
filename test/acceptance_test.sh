@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-DIR="${BASH_SOURCE%/*}"
-if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
-
 # shellcheck source=../ami.inc
-. "$DIR/../ami.inc"
+. "$(dirname "${BASH_SOURCE[0]}")/../ami.inc"
 
 STACKNAME=test-ami
 
