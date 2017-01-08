@@ -6,7 +6,7 @@
 
 function checkConfigFile() {
   if [ -f "$TARGET/gocd.config" ] ; then
-    # shellcheck disable=SC1091
+    # shellcheck source=../target/gocd.config disable=SC1091
     . "$TARGET/gocd.config"
   fi
 }
