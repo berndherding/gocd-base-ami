@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# shellcheck source=../ami.inc
-. "$(dirname "${BASH_SOURCE[0]}")/../ami.inc"
+# shellcheck source=ami.inc
+. "$(dirname "${BASH_SOURCE[0]}")/ami.inc"
 
 STACKNAME=gocd-ami
 
@@ -13,9 +13,30 @@ SHUNIT=$(which shunit)
 
 
 
-function testCreateAmi() {
-  createAmi "$STACKNAME"
-  assertEquals "createAmi failed" 0 $?
+function testCreateAmiInstance() {
+  createAmiInstance "$STACKNAME"
+  assertEquals "createAmiInstance failed" 0 $?
+}
+
+
+
+function testCreateImage() {
+  createImage "$STACKNAME"
+  assertEquals "createImage failed" 0 $?
+}
+
+
+
+function testWaitSnapshotsAvailable() {
+  waitSnapshotsAvailable "$STACKNAME"
+  assertEquals "waitSnapshotsAvailable failed" 0 $?
+}
+
+
+
+function testLabelSnapshots() {
+  labelSnapshots "$STACKNAME"
+  assertEquals "labelSnapshots failed" 0 $?
 }
 
 
@@ -34,8 +55,6 @@ function testInstanceIsInRunningState() {
 
 
 
-#function testImageWasCreated() {}
-#function testSnapshotWasCreated() {}
 #function testEcsConfigIsThere() {}
 
 
