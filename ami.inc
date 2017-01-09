@@ -1,9 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # shellcheck source=inc/commons.inc
 . "$(dirname "${BASH_SOURCE[0]}")/inc/commons.inc"
 
 [ ! -d "$(dirname "${BASH_SOURCE[0]}")/target" ] && mkdir "$(dirname "${BASH_SOURCE[0]}")/target"
+
+ERROR_createAmiInstance_createStack=1
+ERROR_createAmiInstance_waitStack=2
+ERROR_createImage_createImage=3
+ERROR_createImage_waitImage=4
+ERROR_destroyImage_describeImages_imageId=5
+ERROR_destroyImage_describeImages_snapshotId=6
+ERROR_destroyImage_deregisterImage=7
+ERROR_destroyImage_deleteSnapshot=8
+ERROR_labelSnapshots_describeImages=9
+ERROR_labelSnapshots_createTags=10
 
 
 
@@ -17,29 +28,29 @@ function createAmiInstance() {
   --stack-name "$stackname" \
   --template-body file://"$dirname/ami.cf" \
   --parameters ParameterKey=VpcId,ParameterValue="$(getDefaultVpcId)" \
-  || return 1
+  || return $ERROR_createAmiInstance_createStack
 
   echo "*** please wait for create-stack to complete. this may take a few minutes."
-  aws cloudformation wait stack-create-complete --stack-name "$stackname" --output text || return 2
-
-  getInstanceId       "$stackname" > "$dirname/target/instanceId"
-  getPublicIpAddress  "$stackname" > "$dirname/target/publicIpAddress"
+  aws cloudformation wait stack-create-complete --stack-name "$stackname" --output text \
+  || return $ERROR_createAmiInstance_waitStack
 }
 
 
 
 function createImage() {
+  local stackname=$1
   local instanceId
 
   # TODO: replace instanceId with stackname
-  instanceId="$(cat "$(dirname "${BASH_SOURCE[0]}")/target/instanceId")"
+  instanceId="$(getInstanceId "$stackname")"
 
-  details=$(aws ec2 create-image --instance-id "$instanceId" --name "$stackname") || return 4
+  details=$(aws ec2 create-image --instance-id "$instanceId" --name "$stackname") \
+  || return $ERROR_createImage_createImage
 
   imageId=$(getFromDetails "$details" ImageId)
 
   echo "*** please wait for create-image to complete. this may take a few minutes."
-  aws ec2 wait image-available --image-ids "$imageId" || return 5
+  aws ec2 wait image-available --image-ids "$imageId" || return $ERROR_createImage_waitImage
 
   echo "$imageId" > "$(dirname "${BASH_SOURCE[0]}")/target/imageId"
 }
@@ -62,20 +73,20 @@ function destroyImage() {
     --filters Name=name,Values="$stackname" \
     --query 'Images[*].ImageId' \
     --output text
-  ) || return 6
+  ) || return $ERROR_destroyImage_describeImages_imageId
 
   snapshotIds=$(aws ec2 describe-images \
     --owners self \
     --filters Name=name,Values="$stackname" \
     --query 'Images[*].BlockDeviceMappings[*].Ebs.SnapshotId' \
     --output text
-  ) || return 7
+  ) || return $ERROR_destroyImage_describeImages_snapshotId
 
-  aws ec2 deregister-image --image-id "$imageId"        || return 8
+  aws ec2 deregister-image --image-id "$imageId"        || return $ERROR_destroyImage_deregisterImage
   waitImageDeregistered "$imageId"                      || return $?
 
   for snapshotId in $snapshotIds ; do
-    aws ec2 delete-snapshot --snapshot-id "$snapshotId" || return 9
+    aws ec2 delete-snapshot --snapshot-id "$snapshotId" || return $ERROR_destroyImage_deleteSnapshot
   done
 }
 
@@ -102,7 +113,7 @@ function labelSnapshots() {
     --filters Name=name,Values=gocd-ami-0 \
     --query 'Images[*].BlockDeviceMappings[*].{device: DeviceName, snapshot: Ebs.SnapshotId}' \
     --output text
-  ) || return 10
+  ) || return $ERROR_labelSnapshots_describeImages
 
   IFS=$'\n'
 
@@ -118,7 +129,7 @@ function labelSnapshots() {
     aws ec2 create-tags \
     --resources "$snapshotId" \
     --tags Key=Name,Value="$name" \
-    || return 11
+    || return $ERROR_labelSnapshots_createTags
 
   done
 }
@@ -129,8 +140,7 @@ function createAmi() {
   local stackname=$1
   
   createAmiInstance "$stackname"      || return $?
-  # TODO parameter: $stackname
-  createImage                         || return $?
+  createImage "$stackname"            || return $?
   waitSnapshotsAvailable "$stackname" || return $?
   labelSnapshots "$stackname"         || return $?
 }
