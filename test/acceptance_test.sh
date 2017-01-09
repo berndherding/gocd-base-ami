@@ -3,7 +3,7 @@
 # shellcheck source=../ami.inc
 . "$(dirname "${BASH_SOURCE[0]}")/../ami.inc"
 
-STACKNAME=test-ami
+STACKNAME=gocd-ami
 
 _GO_PIPELINE_COUNTER=-${GO_PIPELINE_COUNTER:-0}
 
