@@ -104,6 +104,7 @@ function setDockerHubEmail() {
 
 function getGoCDPrivateKeyFile() {
   [ ! -f "$GOCD_PRIVATE_KEY_FILE" ] && provideGoCDPrivateKeyFile
+  chmod 0400 "$GOCD_PRIVATE_KEY_FILE"
   echo "$GOCD_PRIVATE_KEY_FILE"
   # TODO: is there a pub key uploaded to AWS for this priv key? if not, generate one
   # with pipeline .no and date and change GOCD_PRIVATE_KEY_FILE name accordingly
@@ -114,7 +115,6 @@ function getGoCDPrivateKeyFile() {
 function provideGoCDPrivateKeyFile() {
   [ -f "$GOCD_PRIVATE_KEY_FILE" ] && return 
   getGoCDPrivateKey > "$GOCD_PRIVATE_KEY_FILE"
-  chmod 0400 "$GOCD_PRIVATE_KEY_FILE"
   export GOCD_PRIVATE_KEY_FILE
 }
 
