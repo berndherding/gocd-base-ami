@@ -128,7 +128,7 @@ function getGoCDPrivateKey() {
 
 
 function setGoCDPrivateKey() {
-  [ -n "$GOCD_PRIVATE_KEY" ] & return
+  [ -n "$GOCD_PRIVATE_KEY" ] && return
   GOCD_PRIVATE_KEY="$($OPENSSL genrsa 2048)" || return 2
   export GOCD_PRIVATE_KEY
 }
