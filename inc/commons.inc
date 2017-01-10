@@ -93,24 +93,6 @@ function getImageId() {
 
 
 
-function getImageTag() {
-  local imageName=$1
-
-  imageTag=$imageName:${GO_PIPELINE_COUNTER:-0}
-
-  if [ "$imageTag" != "$imageName:0" ] ; then
-
-    gitHash=${GO_REVISION_FNS_GOCD_SERVER_DOCKER:0:7}
-    gitHash=${gitHash:-$(git rev-parse --short HEAD)}
-
-    imageTag="$imageTag-$gitHash"
-  fi
-
-  echo "$imageTag"
-}
-
-
-
 function getInstanceId() {
   local name=$1
 
