@@ -143,6 +143,18 @@ function getPublicIpAddress() {
 
 
 
+function getStackname() {
+  local stackname=$1
+  local environment=$2
+ 
+  stackname=$stackname-${GO_PIPELINE_COUNTER:-0}
+  stackname=$stackname-$environment
+
+  echo "$stackname"
+}
+
+
+
 function getVersionNumber() {
   local name=$1
   echo "${name#$(getBaseName "$name")}"
