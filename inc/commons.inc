@@ -148,7 +148,7 @@ function getStackname() {
   local environment=$2
  
   stackname=$stackname-${GO_PIPELINE_COUNTER:-0}
-  stackname=$stackname-$environment
+  [ -n "$environment" ] && stackname=$stackname-$environment
 
   echo "$stackname"
 }
