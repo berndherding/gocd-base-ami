@@ -35,7 +35,7 @@ function getFromDetails() {
 function getStackname() {
   local stackprefix=$1
   local stacksuffix=$2
-  local env stackname
+  local stackname
 
   if [ -n "${stacksuffix##+([0-9])-*}" ] ; then
     stacksuffix="${GO_PIPELINE_COUNTER:-0}-$stacksuffix"
