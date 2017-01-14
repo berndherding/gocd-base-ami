@@ -18,6 +18,61 @@ ERROR_labelSnapshots_createTags=10
 
 
 
+function awsWaitEquals() {
+  local value=$1
+  local what=$2
+
+  seconds=0
+  # shellcheck disable=SC2086
+  x=$(aws $what) || return 6
+
+  while [[ "$x" -eq "$value" ]] && [[ $seconds -lt 600 ]] ; do
+    sleep 15
+    seconds=$((seconds+ 15))
+    # shellcheck disable=SC2086
+    x=$(aws $what) || return 7
+  done
+
+  [ "$x" -eq "$value" ] && return 8
+
+  return 0
+}
+
+
+
+function awsWaitNotEquals() {
+  local value=$1
+  local what=$2
+
+  seconds=0
+  # shellcheck disable=SC2086
+  x=$(aws $what) || return 3
+
+  while [[ "$x" -ne "$value" ]] && [[ $seconds -lt 600 ]] ; do
+    sleep 15
+    seconds=$((seconds+ 15))
+    # shellcheck disable=SC2086
+    x=$(aws $what) || return 4
+  done
+
+  [ "$x" -eq "$value" ] && return 0
+
+  return 5
+}
+
+
+
+function getInstanceId() {
+  local name=$1
+
+  aws ec2 describe-instances \
+  --filters "Name=tag:Name,Values=$name" "Name=instance-state-name,Values=running" \
+  --query "Reservations[*].Instances[*].InstanceId" \
+  --output text
+}
+
+
+
 function createAmiInstance() {
   local stackname=$1
   local dirname
