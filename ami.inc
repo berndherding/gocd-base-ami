@@ -165,7 +165,7 @@ function labelSnapshots() {
 
   details=$(aws ec2 describe-images \
     --owners self \
-    --filters Name=name,Values=gocd-ami-0 \
+    --filters Name=name,Values="$stackname" \
     --query 'Images[*].BlockDeviceMappings[*].{device: DeviceName, snapshot: Ebs.SnapshotId}' \
     --output text
   ) || return $ERROR_labelSnapshots_describeImages
