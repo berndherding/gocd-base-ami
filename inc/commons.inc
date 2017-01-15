@@ -4,6 +4,16 @@
 
 
 
+function getImageId() {
+  if [ -n "$GO_PACKAGE_AMI_REPO_GO_AMI_LABEL" ] ; then
+    echo "$GO_PACKAGE_AMI_REPO_GO_AMI_LABEL"
+  else
+    cat "$(dirname "${BASH_SOURCE[0]}")/../target/imageId"
+  fi
+}
+
+
+
 function destroyStack() {
   local stackname=${1:-$DEFAULT_STACKNAME}
 
