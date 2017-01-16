@@ -35,43 +35,11 @@
           }
         ],
         "UserData" : { "Fn::Base64" : { "Fn::Join" : [ "\n", [
-
           "#!/bin/bash -ex",
           "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1",
           "yum -y update",
           "yum -y install jq",
-          "yum -y install aws-cli",
-
-          "cat <<EOF > /root/mountvolumes.sh",
-          "#!/bin/bash",
-          "function mountvolume() {",
-          "  dev=\\$1 mp=\\$2",
-          "  mount | grep \"\\$dev\"",
-          "  if [ \\$? -ne 0 ] ; then",
-          "    file -s \"\\$dev\" | grep filesystem",
-          "    if [ \\$? -ne 0 ] ; then",
-          "      mkfs -t ext4 \"\\$dev\"",
-          "    fi",
-          "    if [ ! -d \"\\$mp\" ] ; then",
-          "      mkdir \"\\$mp\"",
-          "    fi",
-          "    mount \"\\$dev\" \"\\$mp\"",
-          "  fi",
-          "}",
-          "mountvolume /dev/xvdb /xvdb",
-          "mountvolume /dev/xvdc /xvdc",
-          "EOF",
-          "chmod 755 /root/mountvolumes.sh",
-          
-          "cat <<EOF > /root/umountvolumes.sh",
-          "#!/bin/bash",
-          "umount /xvdc",
-          "umount /xvdb",
-          "EOF",
-          "chmod 755 /root/umountvolumes.sh",
-
-          "ln -sf /root/mountvolumes.sh  /etc/rc3.d/S85mountvolumes",
-          "ln -sf /root/umountvolumes.sh /etc/rc3.d/K05umountvolumes"
+          "yum -y install aws-cli"
         ]]}}
       }
     },
