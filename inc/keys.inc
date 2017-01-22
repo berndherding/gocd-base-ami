@@ -57,51 +57,6 @@ function init() {
 
 
 
-function getDockerHubUsername() {
-  [ -z "$DOCKER_HUB_USERNAME" ] && setDockerHubUsername
-  echo "$DOCKER_HUB_USERNAME"
-}
-
-
-
-function setDockerHubUsername() {
-  [ -n "$DOCKER_HUB_USERNAME" ] && return
-  read -r -p "DOCKER_HUB_USERNAME: " DOCKER_HUB_USERNAME
-  export DOCKER_HUB_USERNAME
-}
-
-
-
-function getDockerHubPassword() {
-  [ -z "$DOCKER_HUB_PASSWORD" ] && setDockerHubPassword
-  echo "$DOCKER_HUB_PASSWORD"
-}
-
-
-
-function setDockerHubPassword() {
-  [ -n "$DOCKER_HUB_PASSWORD" ] && return 
-  read -r -p "DOCKER_HUB_PASSWORD: " DOCKER_HUB_PASSWORD
-  export DOCKER_HUB_PASSWORD
-}
-
-
-
-function getDockerHubEmail() {
-  [ -z "$DOCKER_HUB_EMAIL" ] && setDockerHubEmail
-  echo "$DOCKER_HUB_EMAIL"
-}
-
-
-
-function setDockerHubEmail() {
-  [ -n "$DOCKER_HUB_EMAIL" ] && return
-  read -r -p "DOCKER_HUB_EMAIL: " DOCKER_HUB_EMAIL
-  export DOCKER_HUB_EMAIL
-}
-
-
-
 function getGoCDPrivateKeyFile() {
   [ ! -f "$GOCD_PRIVATE_KEY_FILE" ] && provideGoCDPrivateKeyFile
   chmod 0600 "$GOCD_PRIVATE_KEY_FILE"
