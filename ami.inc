@@ -62,6 +62,17 @@ function awsWaitNotEquals() {
 
 
 
+function getFromDetails() {
+  local details=$1
+  local key=$2
+  local s
+  s=${details#*$key\"*\"}
+  s=${s%%\"*}
+  echo "$s"
+}
+
+
+
 function getInstanceId() {
   local name=$1
 

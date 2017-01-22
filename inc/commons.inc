@@ -15,7 +15,7 @@ function getImageId() {
 
 
 function destroyStack() {
-  local stackname=${1:-$DEFAULT_STACKNAME}
+  local stackname=$1
 
   aws cloudformation delete-stack --stack-name "$stackname" || return 1
 
@@ -31,27 +31,13 @@ function getDefaultVpcId() {
 
 
 
-function getFromDetails() {
-  local details=$1
-  local key=$2
-  local s
-  s=${details#*$key\"*\"}
-  s=${s%%\"*}
-  echo "$s"
-}
-
-
-
 function getStackname() {
-  local stackprefix=$1
-  local stacksuffix=$2
-  local stackname
+  local stack=$1
+  local label=$2
 
-  if [ -n "${stacksuffix##+([0-9])-*}" ] ; then
-    stacksuffix="${GO_PIPELINE_COUNTER:-0}-$stacksuffix"
-  fi
+  counter="${GO_PIPELINE_COUNTER:-0}"
 
-  stackname=$stackprefix-$stacksuffix
+  stackname="gocd-$label-$stack-$counter"
 
   echo "$stackname"
 }
