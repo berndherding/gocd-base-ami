@@ -84,16 +84,27 @@ function getInstanceId() {
 
 
 
+function getRelease() {
+  gpc="${GO_PIPELINE_COUNTER:-0}"
+  rev=${GO_REVISION:-$(git rev-parse HEAD)}
+  echo "$gpc-${rev:0:7}"
+}
+
+
+
+
 function createAmiInstance() {
   local stackname=$1
-  local dirname
 
-  dirname="$(dirname "${BASH_SOURCE[0]}")"
+  vpcId="$(getDefaultVpcId)"
+  release="$(getRelease)"
   
   aws cloudformation create-stack \
   --stack-name "$stackname" \
-  --template-body file://"$dirname/ami.cf" \
-  --parameters ParameterKey=VpcId,ParameterValue="$(getDefaultVpcId)" \
+  --template-body file://"$(dirname "${BASH_SOURCE[0]}")/ami.cf" \
+  --parameters \
+    ParameterKey=VpcId,ParameterValue="$vpcId" \
+    ParameterKey=Release,ParameterValue="$release" \
   || return $ERROR_createAmiInstance_createStack
 
   echo "*** please wait for create-stack to complete. this may take a few minutes."
