@@ -14,6 +14,14 @@ function getImageId() {
 
 
 
+function getRelease() {
+  gpc="${GO_PIPELINE_COUNTER:-0}"
+  rev=${GO_REVISION:-$(git rev-parse HEAD)}
+  echo "$gpc-${rev:0:7}"
+}
+
+
+
 function destroyStack() {
   local stackname=$1
 

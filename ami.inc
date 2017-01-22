@@ -84,15 +84,6 @@ function getInstanceId() {
 
 
 
-function getRelease() {
-  gpc="${GO_PIPELINE_COUNTER:-0}"
-  rev=${GO_REVISION:-$(git rev-parse HEAD)}
-  echo "$gpc-${rev:0:7}"
-}
-
-
-
-
 function createAmiInstance() {
   local stackname=$1
 
