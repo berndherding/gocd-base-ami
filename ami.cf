@@ -4,8 +4,8 @@
   "AWSTemplateFormatVersion": "2010-09-09",
 
   "Parameters" : {
-    "VpcId":   { "Type" : "String" },
-    "Release": { "Type" : "String" }
+    "Release": { "Type": "String" },
+    "VpcId":   { "Type": "String" }
   },
 
   "Resources": {
@@ -30,7 +30,7 @@
         "AvailabilityZone": "eu-central-1b",
         "DisableApiTermination": "false",
         "InstanceInitiatedShutdownBehavior": "stop",
-        "ImageId": "ami-e012d48f",
+        "ImageId": "ami-6b428d04",
         "InstanceType": "t2.small",
         "KeyName": "gocd",
         "Monitoring": "true",
